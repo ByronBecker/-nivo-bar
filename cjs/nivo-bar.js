@@ -132,6 +132,7 @@ var generateVerticalGroupedBars = function generateVerticalGroupedBars(_ref) {
                 var barHeight = getHeight(data[index][key], y);
 
                 if (minBarLength && minBarLength > 0 && barHeight < minBarLength) {
+                    y = height - minBarLength;
                     barHeight = minBarLength;
                 }
 
@@ -354,13 +355,21 @@ var generateVerticalStackedBars = function generateVerticalStackedBars(_ref) {
 
                 var y = getY(d);
                 var barHeight = getHeight(d, y);
+
+                //If bar has no data value associated, barData.value will be undefined or 0
+                var doesBarHaveData = d.data[stackedDataItem.key];
+                //If minBarLength prop is specified, valid data exists for the bar, and it's calculated length is less than the minBarLength specified
+                if (minBarLength && minBarLength > 0 && doesBarHaveData && barHeight < minBarLength) {
+                    var minY = height - (stackedDataItem.index + 1) * minBarLength;
+                    if (y > minY) {
+                        y = minY;
+                    }
+                    barHeight = minBarLength;
+                }
+
                 if (innerPadding > 0) {
                     y += innerPadding * 0.5;
                     barHeight -= innerPadding;
-                }
-
-                if (minBarLength && minBarLength > 0 && barHeight < minBarLength) {
-                    barHeight = minBarLength;
                 }
 
                 if (barHeight > 0) {
@@ -462,13 +471,21 @@ var generateHorizontalStackedBars = function generateHorizontalStackedBars(_ref2
 
                 var x = getX(d);
                 var barWidth = getWidth(d, x);
+
+                //If bar has no data value associated, barData.value will be undefined or 0
+                var doesBarHaveData = barData.value;
+                //If minBarLength prop is specified, valid data exists for the bar, and it's calculated length is less than the minBarLength specified
+                if (minBarLength && minBarLength > 0 && doesBarHaveData && barWidth < minBarLength) {
+                    var minX = stackedDataItem.index * minBarLength;
+                    if (x < minX) {
+                        x = minX;
+                    }
+                    barWidth = minBarLength;
+                }
+
                 if (innerPadding > 0) {
                     x += innerPadding * 0.5;
                     barWidth -= innerPadding;
-                }
-
-                if (minBarLength && minBarLength > 0 && barWidth < minBarLength) {
-                    barWidth = minBarLength;
                 }
 
                 if (barWidth > 0) {

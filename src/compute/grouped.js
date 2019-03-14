@@ -91,10 +91,11 @@ export const generateVerticalGroupedBars = ({
         keys.forEach((key, i) => {
             range(xScale.domain().length).forEach(index => {
                 const x = xScale(getIndex(data[index])) + barWidth * i + innerPadding * i
-                const y = getY(data[index][key])
+                let y = getY(data[index][key])
                 let barHeight = getHeight(data[index][key], y)
 
                 if (minBarLength && minBarLength > 0 && barHeight < minBarLength) {
+                    y = height - minBarLength
                     barHeight = minBarLength
                 }
 
