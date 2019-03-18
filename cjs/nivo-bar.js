@@ -131,7 +131,7 @@ var generateVerticalGroupedBars = function generateVerticalGroupedBars(_ref) {
                 var y = getY(data[index][key]);
                 var barHeight = getHeight(data[index][key], y);
 
-                if (minBarLength && minBarLength > 0 && barHeight < minBarLength) {
+                if (minBarLength && minBarLength > 0 && barHeight < minBarLength && 0 !== data[index][key]) {
                     y = height - minBarLength;
                     barHeight = minBarLength;
                 }
@@ -225,7 +225,7 @@ var generateHorizontalGroupedBars = function generateHorizontalGroupedBars(_ref2
                 var y = yScale(getIndex(data[index])) + barHeight * i + innerPadding * i;
                 var barWidth = getWidth(data[index][key], x);
 
-                if (minBarLength && minBarLength > 0 && barWidth < minBarLength) {
+                if (minBarLength && minBarLength > 0 && barWidth < minBarLength && 0 !== data[index][key]) {
                     barWidth = minBarLength;
                 }
 
@@ -472,9 +472,9 @@ var generateHorizontalStackedBars = function generateHorizontalStackedBars(_ref2
                 var x = getX(d);
                 var barWidth = getWidth(d, x);
 
-                //If bar has no data value associated, barData.value will be undefined or 0
-                var doesBarHaveData = barData.value;
-                //If minBarLength prop is specified, valid data exists for the bar, and it's calculated length is less than the minBarLength specified
+                //If bar has no data value associated, barData.value will be undefined or 0, also make sure the data existing for it is not 0
+                var doesBarHaveData = d.data[stackedDataItem.key];
+                //If minBarLength prop is specified, valid data that is greater than 0 exists for the bar, and it's calculated length is less than the minBarLength specified
                 if (minBarLength && minBarLength > 0 && doesBarHaveData && barWidth < minBarLength) {
                     var minX = stackedDataItem.index * minBarLength;
                     if (x < minX) {
