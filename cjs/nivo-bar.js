@@ -348,22 +348,23 @@ var generateVerticalStackedBars = function generateVerticalStackedBars(_ref) {
     }
 
     if (barWidth > 0) {
+        //Array of bar offsets the size of the data, where each item corresponds to the current additional offset of that bar
+        var barOffsets = new Array(data.length).fill(0);
+
         stackedData.forEach(function (stackedDataItem) {
             xScale.domain().forEach(function (index, i) {
                 var d = stackedDataItem[i];
                 var x = xScale(getIndex(d.data));
 
                 var y = getY(d);
+                var offsetAdjusted = 0;
                 var barHeight = getHeight(d, y);
 
-                //If bar has no data value associated, barData.value will be undefined or 0
+                //If bar has no data value associated or that data is zero, don't render the barItem
                 var doesBarHaveData = d.data[stackedDataItem.key];
                 //If minBarLength prop is specified, valid data exists for the bar, and it's calculated length is less than the minBarLength specified
                 if (minBarLength && minBarLength > 0 && doesBarHaveData && barHeight < minBarLength) {
-                    var minY = height - (stackedDataItem.index + 1) * minBarLength;
-                    if (y > minY) {
-                        y = minY;
-                    }
+                    offsetAdjusted += minBarLength - barHeight;
                     barHeight = minBarLength;
                 }
 
@@ -385,12 +386,16 @@ var generateVerticalStackedBars = function generateVerticalStackedBars(_ref) {
                         key: stackedDataItem.key + '.' + index,
                         data: barData,
                         x: x,
-                        y: y,
+                        //Subtract both the current offset, as well as any offset from the resizing
+                        y: y - offsetAdjusted - barOffsets[i],
                         width: barWidth,
                         height: barHeight,
                         color: getColor(barData)
                     });
                 }
+
+                //Increment that bar's offset (so the next stacked bar item within that bar is offset correctly)
+                barOffsets[i] += offsetAdjusted;
             });
         });
     }
@@ -456,6 +461,9 @@ var generateHorizontalStackedBars = function generateHorizontalStackedBars(_ref2
     }
 
     if (barHeight > 0) {
+        //Array of bar offsets the size of the data, where each item corresponds to the current additional offset of that bar
+        var barOffsets = new Array(data.length).fill(0);
+
         stackedData.forEach(function (stackedDataItem) {
             yScale.domain().forEach(function (index, i) {
                 var d = stackedDataItem[i];
@@ -470,16 +478,14 @@ var generateHorizontalStackedBars = function generateHorizontalStackedBars(_ref2
                 };
 
                 var x = getX(d);
+                var offsetAdjusted = 0;
                 var barWidth = getWidth(d, x);
 
-                //If bar has no data value associated, barData.value will be undefined or 0, also make sure the data existing for it is not 0
+                //If bar has no data value associated or that data is zero, don't render the barItem
                 var doesBarHaveData = d.data[stackedDataItem.key];
                 //If minBarLength prop is specified, valid data that is greater than 0 exists for the bar, and it's calculated length is less than the minBarLength specified
                 if (minBarLength && minBarLength > 0 && doesBarHaveData && barWidth < minBarLength) {
-                    var minX = stackedDataItem.index * minBarLength;
-                    if (x < minX) {
-                        x = minX;
-                    }
+                    offsetAdjusted += minBarLength - barWidth;
                     barWidth = minBarLength;
                 }
 
@@ -492,13 +498,16 @@ var generateHorizontalStackedBars = function generateHorizontalStackedBars(_ref2
                     bars.push({
                         key: stackedDataItem.key + '.' + index,
                         data: barData,
-                        x: x,
+                        x: x + barOffsets[i],
                         y: y,
                         width: barWidth,
                         height: barHeight,
                         color: getColor(barData)
                     });
                 }
+
+                //Increment that bar's offset (so the next stacked bar item within that bar is offset correctly)
+                barOffsets[i] += offsetAdjusted;
             });
         });
     }
