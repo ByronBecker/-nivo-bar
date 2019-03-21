@@ -1,6 +1,6 @@
 {
   "name": "@nivo/bar",
-  "version": "0.52.1",
+  "version": "0.53.1",
   "license": "MIT",
   "author": {
     "name": "Raphaël Benitte",
@@ -14,27 +14,26 @@
     "charts",
     "bar-chart"
   ],
-  "main": "./index.js",
+  "main": "./dist/nivo-bar.cjs.js",
+  "module": "./dist/nivo-bar.esm.js",
   "files": [
     "README.md",
     "LICENSE.md",
-    "index.js",
     "index.d.ts",
-    "cjs/",
-    "umd/"
+    "dist/"
   ],
   "dependencies": {
-    "@nivo/axes": "0.52.1",
-    "@nivo/core": "0.52.1",
-    "@nivo/legends": "0.52.1",
+    "@nivo/axes": "0.53.0",
+    "@nivo/core": "0.53.0",
+    "@nivo/legends": "0.53.0",
     "d3-scale": "^2.1.2",
     "d3-shape": "^1.2.2",
     "lodash": "^4.17.4",
     "react-motion": "^0.5.2",
-    "recompose": "^0.26.0"
+    "recompose": "^0.30.0"
   },
   "peerDependencies": {
-    "prop-types": "^15.5.10",
+    "prop-types": ">= 15.5.10 < 16.0.0",
     "react": ">= 16.2.0 < 17.0.0"
   },
   "publishConfig": {
