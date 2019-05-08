@@ -22,40 +22,19 @@ var compose = _interopDefault(require('recompose/compose'));
 var defaultProps = _interopDefault(require('recompose/defaultProps'));
 var withPropsOnChange = _interopDefault(require('recompose/withPropsOnChange'));
 var pure = _interopDefault(require('recompose/pure'));
+var colors = require('@nivo/colors');
 var PropTypes = _interopDefault(require('prop-types'));
-
-/**
- * Generates indexed scale.
- *
- * @param {Array.<Object>} data
- * @param {Function}       getIndex
- * @param {Array.<number>} range
- * @param {number}         padding
- * @returns {Function}
- */
+var tooltip = require('@nivo/tooltip');
+var annotations = require('@nivo/annotations');
 
 var getIndexedScale = function getIndexedScale(data, getIndex, range, padding) {
   return d3Scale.scaleBand().rangeRound(range).domain(data.map(getIndex)).padding(padding);
 };
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
-
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
-
 function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
-
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
-/**
- * Generates scale for grouped bar chart.
- *
- * @param {Array.<Object>} data
- * @param {Array.<string>} keys
- * @param {number}         _minValue
- * @param {number|string}  _maxValue
- * @param {Array.<number>} range
- * @returns {Function}
- */
-
 var getGroupedScale = function getGroupedScale(data, keys, _minValue, _maxValue, range) {
   var allValues = data.reduce(function (acc, entry) {
     return [].concat(_toConsumableArray(acc), _toConsumableArray(keys.map(function (k) {
@@ -63,38 +42,16 @@ var getGroupedScale = function getGroupedScale(data, keys, _minValue, _maxValue,
     })));
   }, []);
   var maxValue = _maxValue;
-
   if (maxValue === 'auto') {
     maxValue = max(allValues);
   }
-
   var minValue = _minValue;
-
   if (minValue === 'auto') {
     minValue = min(allValues);
     if (minValue > 0) minValue = 0;
   }
-
   return d3Scale.scaleLinear().rangeRound(range).domain([minValue, maxValue]);
 };
-/**
- * Generates x/y scales & bars for vertical grouped bar chart.
- *
- * @param {Array.<Object>} data
- * @param {Function}       getIndex
- * @param {Array.<string>} keys
- * @param {number}         minValue
- * @param {number}         maxValue
- * @param {boolean}        reverse
- * @param {number}         width
- * @param {number}         height
- * @param {Function}       getColor
- * @param {number}         [padding=0]
- * @param {number}         [innerPadding=0]
- * @param {number}         minBarLength
- * @return {{ xScale: Function, yScale: Function, bars: Array.<Object> }}
- */
-
 var generateVerticalGroupedBars = function generateVerticalGroupedBars(_ref) {
   var data = _ref.data,
       getIndex = _ref.getIndex,
@@ -115,39 +72,31 @@ var generateVerticalGroupedBars = function generateVerticalGroupedBars(_ref) {
   var yScale = getGroupedScale(data, keys, minValue, maxValue, yRange);
   var barWidth = (xScale.bandwidth() - innerPadding * (keys.length - 1)) / keys.length;
   var yRef = yScale(0);
-
   var getY = function getY(d) {
     return d > 0 ? yScale(d) : yRef;
   };
-
   var getHeight = function getHeight(d, y) {
     return d > 0 ? yRef - y : yScale(d) - yRef;
   };
-
   if (reverse) {
     getY = function getY(d) {
       return d < 0 ? yScale(d) : yRef;
     };
-
     getHeight = function getHeight(d, y) {
       return d < 0 ? yRef - y : yScale(d) - yRef;
     };
   }
-
   var bars = [];
-
   if (barWidth > 0) {
     keys.forEach(function (key, i) {
       range(xScale.domain().length).forEach(function (index) {
         var x = xScale(getIndex(data[index])) + barWidth * i + innerPadding * i;
         var y = getY(data[index][key]);
         var barHeight = getHeight(data[index][key], y);
-
         if (minBarLength && minBarLength > 0 && barHeight < minBarLength && 0 !== data[index][key]) {
           y = height - minBarLength;
           barHeight = minBarLength;
         }
-
         if (barWidth > 0 && barHeight > 0) {
           var barData = {
             id: key,
@@ -169,31 +118,12 @@ var generateVerticalGroupedBars = function generateVerticalGroupedBars(_ref) {
       });
     });
   }
-
   return {
     xScale: xScale,
     yScale: yScale,
     bars: bars
   };
 };
-/**
- * Generates x/y scales & bars for horizontal grouped bar chart.
- *
- * @param {Array.<Object>} data
- * @param {Function}       getIndex
- * @param {Array.<string>} keys
- * @param {number}         minValue
- * @param {number}         maxValue
- * @param {boolean}        reverse
- * @param {number}         width
- * @param {number}         height
- * @param {Function}       getColor
- * @param {number}         [padding=0]
- * @param {number}         [innerPadding=0]
- * @param {number}         minBarLength
- * @return {{ xScale: Function, yScale: Function, bars: Array.<Object> }}
- */
-
 var generateHorizontalGroupedBars = function generateHorizontalGroupedBars(_ref2) {
   var data = _ref2.data,
       getIndex = _ref2.getIndex,
@@ -214,38 +144,30 @@ var generateHorizontalGroupedBars = function generateHorizontalGroupedBars(_ref2
   var yScale = getIndexedScale(data, getIndex, [height, 0], padding);
   var barHeight = (yScale.bandwidth() - innerPadding * (keys.length - 1)) / keys.length;
   var xRef = xScale(0);
-
   var getX = function getX(d) {
     return d > 0 ? xRef : xScale(d);
   };
-
   var getWidth = function getWidth(d, x) {
     return d > 0 ? xScale(d) - xRef : xRef - x;
   };
-
   if (reverse) {
     getX = function getX(d) {
       return d < 0 ? xRef : xScale(d);
     };
-
     getWidth = function getWidth(d, x) {
       return d < 0 ? xScale(d) - xRef : xRef - x;
     };
   }
-
   var bars = [];
-
   if (barHeight > 0) {
     keys.forEach(function (key, i) {
       range(yScale.domain().length).forEach(function (index) {
         var x = getX(data[index][key]);
         var y = yScale(getIndex(data[index])) + barHeight * i + innerPadding * i;
         var barWidth = getWidth(data[index][key], x);
-
         if (minBarLength && minBarLength > 0 && barWidth < minBarLength && 0 !== data[index][key]) {
           barWidth = minBarLength;
         }
-
         if (barWidth > 0) {
           var barData = {
             id: key,
@@ -267,68 +189,28 @@ var generateHorizontalGroupedBars = function generateHorizontalGroupedBars(_ref2
       });
     });
   }
-
   return {
     xScale: xScale,
     yScale: yScale,
     bars: bars
   };
 };
-/**
- * Generates x/y scales & bars for grouped bar chart.
- *
- * @param {Object} options
- * @return {{ xScale: Function, yScale: Function, bars: Array.<Object> }}
- */
-
 var generateGroupedBars = function generateGroupedBars(options) {
   return options.layout === 'vertical' ? generateVerticalGroupedBars(options) : generateHorizontalGroupedBars(options);
 };
 
-/**
- * Generates scale for stacked bar chart.
- *
- * @param {Array.<Object>} data
- * @param {number|string}  _minValue
- * @param {number|string}  _maxValue
- * @param {Array.<number>} range
- * @returns {Function}
- */
-
 var getStackedScale = function getStackedScale(data, _minValue, _maxValue, range) {
   var allValues = flattenDepth(data, 2);
   var minValue = _minValue;
-
   if (minValue === 'auto') {
     minValue = min(allValues);
   }
-
   var maxValue = _maxValue;
-
   if (maxValue === 'auto') {
     maxValue = max(allValues);
   }
-
   return d3Scale.scaleLinear().rangeRound(range).domain([minValue, maxValue]);
 };
-/**
- * Generates x/y scales & bars for vertical stacked bar chart.
- *
- * @param {Array.<Object>} data
- * @param {Function}       getIndex
- * @param {Array.<string>} keys
- * @param {number}         minValue
- * @param {number}         maxValue
- * @param {boolean}        reverse
- * @param {number}         width
- * @param {number}         height
- * @param {Function}       getColor
- * @param {number}         [padding=0]
- * @param {number}         [innerPadding=0]
- * @param {number}         minBarLength
- * @return {{ xScale: Function, yScale: Function, bars: Array.<Object> }}
- */
-
 var generateVerticalStackedBars = function generateVerticalStackedBars(_ref) {
   var data = _ref.data,
       getIndex = _ref.getIndex,
@@ -350,27 +232,21 @@ var generateVerticalStackedBars = function generateVerticalStackedBars(_ref) {
   var yScale = getStackedScale(stackedData, minValue, maxValue, yRange);
   var bars = [];
   var barWidth = xScale.bandwidth();
-
   var getY = function getY(d) {
     return yScale(d[1]);
   };
-
   var getHeight = function getHeight(d, y) {
     return yScale(d[0]) - y;
   };
-
   if (reverse) {
     getY = function getY(d) {
       return yScale(d[0]);
     };
-
     getHeight = function getHeight(d, y) {
       return yScale(d[1]) - y;
     };
   }
-
   if (barWidth > 0) {
-    //Array of bar offsets the size of the data, where each item corresponds to the current additional offset of that bar
     var barOffsets = new Array(data.length).fill(0);
     stackedData.forEach(function (stackedDataItem) {
       xScale.domain().forEach(function (index, i) {
@@ -378,20 +254,16 @@ var generateVerticalStackedBars = function generateVerticalStackedBars(_ref) {
         var x = xScale(getIndex(d.data));
         var y = getY(d);
         var offsetAdjusted = 0;
-        var barHeight = getHeight(d, y); //If bar has no data value associated or that data is zero, don't render the barItem
-
-        var doesBarHaveData = d.data[stackedDataItem.key]; //If minBarLength prop is specified, valid data exists for the bar, and it's calculated length is less than the minBarLength specified
-
+        var barHeight = getHeight(d, y);
+        var doesBarHaveData = d.data[stackedDataItem.key];
         if (minBarLength && minBarLength > 0 && doesBarHaveData && barHeight < minBarLength) {
           offsetAdjusted += minBarLength - barHeight;
           barHeight = minBarLength;
         }
-
         if (innerPadding > 0) {
           y += innerPadding * 0.5;
           barHeight -= innerPadding;
         }
-
         if (barHeight > 0) {
           var barData = {
             id: stackedDataItem.key,
@@ -404,44 +276,22 @@ var generateVerticalStackedBars = function generateVerticalStackedBars(_ref) {
             key: "".concat(stackedDataItem.key, ".").concat(index),
             data: barData,
             x: x,
-            //Subtract both the current offset, as well as any offset from the resizing
             y: y - offsetAdjusted - barOffsets[i],
             width: barWidth,
             height: barHeight,
             color: getColor(barData)
           });
-        } //Increment that bar's offset (so the next stacked bar item within that bar is offset correctly)
-
-
+        }
         barOffsets[i] += offsetAdjusted;
       });
     });
   }
-
   return {
     xScale: xScale,
     yScale: yScale,
     bars: bars
   };
 };
-/**
- * Generates x/y scales & bars for horizontal stacked bar chart.
- *
- * @param {Array.<Object>} data
- * @param {Function}       getIndex
- * @param {Array.<string>} keys
- * @param {number}         minValue
- * @param {number}         maxValue
- * @param {boolean}        reverse
- * @param {number}         width
- * @param {number}         height
- * @param {Function}       getColor
- * @param {number}         [padding=0]
- * @param {number}         [innerPadding=0]
- * @param {number}         minBarLength
- * @return {{ xScale: Function, yScale: Function, bars: Array.<Object> }}
- */
-
 var generateHorizontalStackedBars = function generateHorizontalStackedBars(_ref2) {
   var data = _ref2.data,
       getIndex = _ref2.getIndex,
@@ -463,27 +313,21 @@ var generateHorizontalStackedBars = function generateHorizontalStackedBars(_ref2
   var yScale = getIndexedScale(data, getIndex, [height, 0], padding);
   var bars = [];
   var barHeight = yScale.bandwidth();
-
   var getX = function getX(d) {
     return xScale(d[0]);
   };
-
   var getWidth = function getWidth(d, x) {
     return xScale(d[1]) - x;
   };
-
   if (reverse) {
     getX = function getX(d) {
       return xScale(d[1]);
     };
-
     getWidth = function getWidth(d, y) {
       return xScale(d[0]) - y;
     };
   }
-
   if (barHeight > 0) {
-    //Array of bar offsets the size of the data, where each item corresponds to the current additional offset of that bar
     var barOffsets = new Array(data.length).fill(0);
     stackedData.forEach(function (stackedDataItem) {
       yScale.domain().forEach(function (index, i) {
@@ -498,20 +342,16 @@ var generateHorizontalStackedBars = function generateHorizontalStackedBars(_ref2
         };
         var x = getX(d);
         var offsetAdjusted = 0;
-        var barWidth = getWidth(d, x); //If bar has no data value associated or that data is zero, don't render the barItem
-
-        var doesBarHaveData = d.data[stackedDataItem.key]; //If minBarLength prop is specified, valid data that is greater than 0 exists for the bar, and it's calculated length is less than the minBarLength specified
-
+        var barWidth = getWidth(d, x);
+        var doesBarHaveData = d.data[stackedDataItem.key];
         if (minBarLength && minBarLength > 0 && doesBarHaveData && barWidth < minBarLength) {
           offsetAdjusted += minBarLength - barWidth;
           barWidth = minBarLength;
         }
-
         if (innerPadding > 0) {
           x += innerPadding * 0.5;
           barWidth -= innerPadding;
         }
-
         if (barWidth > 0) {
           bars.push({
             key: "".concat(stackedDataItem.key, ".").concat(index),
@@ -522,27 +362,17 @@ var generateHorizontalStackedBars = function generateHorizontalStackedBars(_ref2
             height: barHeight,
             color: getColor(barData)
           });
-        } //Increment that bar's offset (so the next stacked bar item within that bar is offset correctly)
-
-
+        }
         barOffsets[i] += offsetAdjusted;
       });
     });
   }
-
   return {
     xScale: xScale,
     yScale: yScale,
     bars: bars
   };
 };
-/**
- * Generates x/y scales & bars for stacked bar chart.
- *
- * @param {Object} options
- * @return {{ xScale: Function, yScale: Function, bars: Array.<Object> }}
- */
-
 var generateStackedBars = function generateStackedBars(options) {
   return options.layout === 'vertical' ? generateVerticalStackedBars(options) : generateHorizontalStackedBars(options);
 };
@@ -559,11 +389,9 @@ var getLegendDataForKeys = function getLegendDataForKeys(bars, layout, groupMode
     var id = _ref.id;
     return id;
   });
-
   if (layout === 'vertical' && groupMode === 'stacked' && reverse !== true || layout === 'horizontal' && groupMode === 'stacked' && reverse === true) {
     data.reverse();
   }
-
   return data;
 };
 var getLegendDataForIndexes = function getLegendDataForIndexes(bars) {
@@ -585,18 +413,14 @@ var getLegendData = function getLegendData(_ref3) {
       layout = _ref3.layout,
       groupMode = _ref3.groupMode,
       reverse = _ref3.reverse;
-
   if (from === 'indexes') {
     return getLegendDataForIndexes(bars);
   }
-
   return getLegendDataForKeys(bars, layout, groupMode, reverse);
 };
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 var BarItem = function BarItem(_ref) {
   var data = _ref.data,
       x = _ref.x,
@@ -617,21 +441,17 @@ var BarItem = function BarItem(_ref) {
       onMouseLeave = _ref.onMouseLeave,
       tooltip = _ref.tooltip,
       theme = _ref.theme;
-
   var handleTooltip = function handleTooltip(e) {
     return showTooltip(tooltip, e);
   };
-
   var handleMouseEnter = function handleMouseEnter(e) {
     onMouseEnter(data, e);
     showTooltip(tooltip, e);
   };
-
   var handleMouseLeave = function handleMouseLeave(e) {
     onMouseLeave(data, e);
     hideTooltip(e);
   };
-
   return React__default.createElement("g", {
     transform: "translate(".concat(x, ", ").concat(y, ")")
   }, React__default.createElement("rect", {
@@ -650,14 +470,13 @@ var BarItem = function BarItem(_ref) {
     x: width / 2,
     y: height / 2,
     textAnchor: "middle",
-    alignmentBaseline: "central",
+    dominantBaseline: "central",
     style: _objectSpread({}, theme.labels.text, {
       pointerEvents: 'none',
       fill: labelColor
     })
   }, label));
 };
-
 BarItem.propTypes = {
   data: PropTypes.shape({
     id: PropTypes.string.isRequired,
@@ -702,18 +521,18 @@ var enhance = compose(withPropsOnChange(['data', 'color', 'onClick'], function (
   var data = _ref3.data,
       color = _ref3.color,
       theme = _ref3.theme,
-      tooltip = _ref3.tooltip,
+      tooltip$1 = _ref3.tooltip,
       getTooltipLabel = _ref3.getTooltipLabel,
       tooltipFormat = _ref3.tooltipFormat;
   return {
-    tooltip: React__default.createElement(core.BasicTooltip, {
+    tooltip: React__default.createElement(tooltip.BasicTooltip, {
       id: getTooltipLabel(data),
       value: data.value,
       enableChip: true,
       color: color,
       theme: theme,
       format: tooltipFormat,
-      renderContent: typeof tooltip === 'function' ? tooltip.bind(null, _objectSpread({
+      renderContent: typeof tooltip$1 === 'function' ? tooltip$1.bind(null, _objectSpread({
         color: color,
         theme: theme
       }, data)) : null
@@ -723,15 +542,13 @@ var enhance = compose(withPropsOnChange(['data', 'color', 'onClick'], function (
 var BarItem$1 = enhance(BarItem);
 
 function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty$1(target, key, source[key]); }); } return target; }
-
 function _defineProperty$1(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 var BarPropTypes = _objectSpread$1({
   data: PropTypes.arrayOf(PropTypes.object).isRequired,
   indexBy: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
   getIndex: PropTypes.func.isRequired,
-  // computed
   keys: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])).isRequired,
-  layers: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.oneOf(['grid', 'axes', 'bars', 'markers', 'legends']), PropTypes.func])).isRequired,
+  layers: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.oneOf(['grid', 'axes', 'bars', 'markers', 'legends', 'annotations']), PropTypes.func])).isRequired,
   groupMode: PropTypes.oneOf(['stacked', 'grouped']).isRequired,
   layout: PropTypes.oneOf(['horizontal', 'vertical']).isRequired,
   reverse: PropTypes.bool.isRequired,
@@ -752,20 +569,19 @@ var BarPropTypes = _objectSpread$1({
   label: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
   labelFormat: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
   getLabel: PropTypes.func.isRequired,
-  // computed
   labelSkipWidth: PropTypes.number.isRequired,
   labelSkipHeight: PropTypes.number.isRequired,
-  labelTextColor: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+  labelTextColor: colors.inheritedColorPropType.isRequired,
   getLabelTextColor: PropTypes.func.isRequired,
-  // computed
-  labelLinkColor: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+  labelLinkColor: colors.inheritedColorPropType.isRequired,
   getLabelLinkColor: PropTypes.func.isRequired,
-  // computed
+  colors: colors.ordinalColorsPropType.isRequired,
+  colorBy: colors.colorPropertyAccessorPropType.isRequired,
   borderRadius: PropTypes.number.isRequired,
   getColor: PropTypes.func.isRequired
 }, core.defsPropTypes, {
   borderWidth: PropTypes.number.isRequired,
-  borderColor: PropTypes.any.isRequired,
+  borderColor: colors.inheritedColorPropType.isRequired,
   getBorderColor: PropTypes.func.isRequired,
   isInteractive: PropTypes.bool,
   onClick: PropTypes.func.isRequired,
@@ -778,13 +594,12 @@ var BarPropTypes = _objectSpread$1({
   legends: PropTypes.arrayOf(PropTypes.shape(_objectSpread$1({
     dataFrom: PropTypes.oneOf(['indexes', 'keys']).isRequired
   }, legends.LegendPropShape))).isRequired,
-  // canvas specific
   pixelRatio: PropTypes.number.isRequired
 });
 var BarDefaultProps = {
   indexBy: 'id',
   keys: ['value'],
-  layers: ['grid', 'axes', 'bars', 'markers', 'legends'],
+  layers: ['grid', 'axes', 'bars', 'markers', 'legends', 'annotations'],
   groupMode: 'stacked',
   layout: 'vertical',
   reverse: false,
@@ -803,58 +618,70 @@ var BarDefaultProps = {
   labelSkipHeight: 0,
   labelLinkColor: 'theme',
   labelTextColor: 'theme',
+  colors: {
+    scheme: 'nivo'
+  },
+  colorBy: 'id',
   defs: [],
   fill: [],
   borderRadius: 0,
   borderWidth: 0,
-  borderColor: 'inherit',
+  borderColor: {
+    from: 'color'
+  },
   isInteractive: true,
   onClick: core.noop,
   onMouseEnter: core.noop,
   onMouseLeave: core.noop,
   legends: [],
-  // canvas specific
+  annotations: [],
   pixelRatio: global.window && global.window.devicePixelRatio ? global.window.devicePixelRatio : 1
 };
 
 var enhance$1 = (function (Component) {
-  return compose(defaultProps(BarDefaultProps), core.withTheme(), core.withColors(), core.withDimensions(), core.withMotion(), withPropsOnChange(['indexBy'], function (_ref) {
-    var indexBy = _ref.indexBy;
+  return compose(defaultProps(BarDefaultProps), core.withTheme(), core.withDimensions(), core.withMotion(), withPropsOnChange(['colors', 'colorBy'], function (_ref) {
+    var colors$1 = _ref.colors,
+        colorBy = _ref.colorBy;
+    return {
+      getColor: colors.getOrdinalColorScale(colors$1, colorBy)
+    };
+  }), withPropsOnChange(['indexBy'], function (_ref2) {
+    var indexBy = _ref2.indexBy;
     return {
       getIndex: core.getAccessorFor(indexBy)
     };
-  }), withPropsOnChange(['labelTextColor'], function (_ref2) {
-    var labelTextColor = _ref2.labelTextColor;
+  }), withPropsOnChange(['labelTextColor', 'theme'], function (_ref3) {
+    var labelTextColor = _ref3.labelTextColor,
+        theme = _ref3.theme;
     return {
-      getLabelTextColor: core.getInheritedColorGenerator(labelTextColor, 'axis.ticks.text.fill')
+      getLabelTextColor: colors.getInheritedColorGenerator(labelTextColor, theme)
     };
-  }), withPropsOnChange(['labelLinkColor'], function (_ref3) {
-    var labelLinkColor = _ref3.labelLinkColor;
+  }), withPropsOnChange(['labelLinkColor', 'theme'], function (_ref4) {
+    var labelLinkColor = _ref4.labelLinkColor,
+        theme = _ref4.theme;
     return {
-      getLabelLinkColor: core.getInheritedColorGenerator(labelLinkColor, 'axis.ticks.line.stroke')
+      getLabelLinkColor: colors.getInheritedColorGenerator(labelLinkColor, theme)
     };
-  }), withPropsOnChange(['label', 'labelFormat'], function (_ref4) {
-    var label = _ref4.label,
-        labelFormat = _ref4.labelFormat;
+  }), withPropsOnChange(['label', 'labelFormat'], function (_ref5) {
+    var label = _ref5.label,
+        labelFormat = _ref5.labelFormat;
     return {
       getLabel: core.getLabelGenerator(label, labelFormat)
     };
-  }), withPropsOnChange(['borderColor'], function (_ref5) {
-    var borderColor = _ref5.borderColor;
+  }), withPropsOnChange(['borderColor', 'theme'], function (_ref6) {
+    var borderColor = _ref6.borderColor,
+        theme = _ref6.theme;
     return {
-      getBorderColor: core.getInheritedColorGenerator(borderColor)
+      getBorderColor: colors.getInheritedColorGenerator(borderColor, theme)
     };
-  }), withPropsOnChange(['tooltipLabel'], function (_ref6) {
-    var tooltipLabel = _ref6.tooltipLabel;
-
+  }), withPropsOnChange(['tooltipLabel'], function (_ref7) {
+    var tooltipLabel = _ref7.tooltipLabel;
     var getTooltipLabel = function getTooltipLabel(d) {
       return "".concat(d.id, " - ").concat(d.indexValue);
     };
-
     if (typeof tooltipLabel === 'function') {
       getTooltipLabel = tooltipLabel;
     }
-
     return {
       getTooltipLabel: getTooltipLabel
     };
@@ -862,11 +689,48 @@ var enhance$1 = (function (Component) {
 });
 
 function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+var BarAnnotations = function BarAnnotations(_ref) {
+  var bars = _ref.bars,
+      annotations$1 = _ref.annotations,
+      animate = _ref.animate,
+      motionStiffness = _ref.motionStiffness,
+      motionDamping = _ref.motionDamping;
+  var boundAnnotations = annotations.useAnnotations({
+    items: bars,
+    annotations: annotations$1,
+    getPosition: function getPosition(bar) {
+      return {
+        x: bar.x + bar.width / 2,
+        y: bar.y + bar.height / 2
+      };
+    },
+    getDimensions: function getDimensions(bar, offset) {
+      var width = bar.width + offset * 2;
+      var height = bar.height + offset * 2;
+      return {
+        width: width,
+        height: height,
+        size: Math.max(width, height)
+      };
+    }
+  });
+  return boundAnnotations.map(function (annotation, i) {
+    return React__default.createElement(annotations.Annotation, _extends({
+      key: i
+    }, annotation, {
+      containerWidth: innerWidth,
+      containerHeight: innerHeight,
+      animate: animate,
+      motionStiffness: motionStiffness,
+      motionDamping: motionDamping
+    }));
+  });
+};
+BarAnnotations.propTypes = {};
 
+function _extends$1() { _extends$1 = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$1.apply(this, arguments); }
 function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty$2(target, key, source[key]); }); } return target; }
-
 function _defineProperty$2(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 var barWillEnterHorizontal = function barWillEnterHorizontal(_ref) {
   var style = _ref.style;
   return {
@@ -876,7 +740,6 @@ var barWillEnterHorizontal = function barWillEnterHorizontal(_ref) {
     height: style.height.val
   };
 };
-
 var barWillEnterVertical = function barWillEnterVertical(_ref2) {
   var style = _ref2.style;
   return {
@@ -886,7 +749,6 @@ var barWillEnterVertical = function barWillEnterVertical(_ref2) {
     height: 0
   };
 };
-
 var barWillLeaveHorizontal = function barWillLeaveHorizontal(springConfig) {
   return function (_ref3) {
     var style = _ref3.style;
@@ -898,7 +760,6 @@ var barWillLeaveHorizontal = function barWillLeaveHorizontal(springConfig) {
     };
   };
 };
-
 var barWillLeaveVertical = function barWillLeaveVertical(springConfig) {
   return function (_ref4) {
     var style = _ref4.style;
@@ -910,7 +771,6 @@ var barWillLeaveVertical = function barWillLeaveVertical(springConfig) {
     };
   };
 };
-
 var Bar = function Bar(props) {
   var data = props.data,
       getIndex = props.getIndex,
@@ -950,9 +810,7 @@ var Bar = function Bar(props) {
       borderRadius = props.borderRadius,
       borderWidth = props.borderWidth,
       getBorderColor = props.getBorderColor,
-      animate = props.animate,
-      motionStiffness = props.motionStiffness,
-      motionDamping = props.motionDamping,
+      annotations = props.annotations,
       isInteractive = props.isInteractive,
       getTooltipLabel = props.getTooltipLabel,
       tooltipFormat = props.tooltipFormat,
@@ -961,7 +819,10 @@ var Bar = function Bar(props) {
       onMouseEnter = props.onMouseEnter,
       onMouseLeave = props.onMouseLeave,
       minBarLength = props.minBarLength,
-      legends$1 = props.legends;
+      legends$1 = props.legends,
+      animate = props.animate,
+      motionStiffness = props.motionStiffness,
+      motionDamping = props.motionDamping;
   var options = {
     layout: layout,
     reverse: reverse,
@@ -989,7 +850,6 @@ var Bar = function Bar(props) {
   };
   var willEnter = layout === 'vertical' ? barWillEnterVertical : barWillEnterHorizontal;
   var willLeave = layout === 'vertical' ? barWillLeaveVertical(springConfig) : barWillLeaveHorizontal(springConfig);
-
   var shouldRenderLabel = function shouldRenderLabel(_ref5) {
     var width = _ref5.width,
         height = _ref5.height;
@@ -998,14 +858,16 @@ var Bar = function Bar(props) {
     if (labelSkipHeight > 0 && height < labelSkipHeight) return false;
     return true;
   };
-
   var boundDefs = core.bindDefs(defs, result.bars, fill, {
     dataKey: 'data',
     targetKey: 'data.fill'
   });
   return React__default.createElement(core.Container, {
     isInteractive: isInteractive,
-    theme: theme
+    theme: theme,
+    animate: animate,
+    motionStiffness: motionStiffness,
+    motionDamping: motionDamping
   }, function (_ref6) {
     var showTooltip = _ref6.showTooltip,
         hideTooltip = _ref6.hideTooltip;
@@ -1026,7 +888,6 @@ var Bar = function Bar(props) {
       tooltip: tooltip
     };
     var bars;
-
     if (animate === true) {
       bars = React__default.createElement(reactMotion.TransitionMotion, {
         key: "bars",
@@ -1049,9 +910,7 @@ var Bar = function Bar(props) {
           var key = _ref7.key,
               style = _ref7.style,
               bar = _ref7.data;
-
           var baseProps = _objectSpread$2({}, bar, style);
-
           return React__default.createElement(barComponent, _objectSpread$2({
             key: key
           }, baseProps, commonProps, {
@@ -1078,30 +937,27 @@ var Bar = function Bar(props) {
         }));
       });
     }
-
     var layerById = {
-      grid: React__default.createElement(core.Grid, _extends({
+      grid: React__default.createElement(axes.Grid, {
         key: "grid",
-        theme: theme,
         width: width,
         height: height,
         xScale: enableGridX ? result.xScale : null,
         yScale: enableGridY ? result.yScale : null,
         xValues: gridXValues,
         yValues: gridYValues
-      }, motionProps)),
-      axes: React__default.createElement(axes.Axes, _extends({
+      }),
+      axes: React__default.createElement(axes.Axes, {
         key: "axes",
         xScale: result.xScale,
         yScale: result.yScale,
         width: width,
         height: height,
-        theme: theme,
         top: axisTop,
         right: axisRight,
         bottom: axisBottom,
         left: axisLeft
-      }, motionProps)),
+      }),
       bars: bars,
       markers: React__default.createElement(core.CartesianMarkers, {
         key: "markers",
@@ -1121,7 +977,7 @@ var Bar = function Bar(props) {
           reverse: reverse
         });
         if (legendData === undefined) return null;
-        return React__default.createElement(legends.BoxLegendSvg, _extends({
+        return React__default.createElement(legends.BoxLegendSvg, _extends$1({
           key: i
         }, legend, {
           containerWidth: width,
@@ -1129,7 +985,14 @@ var Bar = function Bar(props) {
           data: legendData,
           theme: theme
         }));
-      })
+      }),
+      annotations: React__default.createElement(BarAnnotations, _extends$1({
+        key: "annotations",
+        innerWidth: width,
+        innerHeight: height,
+        bars: result.bars,
+        annotations: annotations
+      }, motionProps))
     };
     return React__default.createElement(core.SvgWrapper, {
       width: outerWidth,
@@ -1143,95 +1006,67 @@ var Bar = function Bar(props) {
           key: i
         }, layer(_objectSpread$2({}, props, result)));
       }
-
       return layerById[layer];
     }));
   });
 };
-
 Bar.propTypes = BarPropTypes;
 var Bar$1 = setDisplayName('Bar')(enhance$1(Bar));
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
 function _objectSpread$3(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty$3(target, key, source[key]); }); } return target; }
-
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
-
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
-
 function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
 function _defineProperty$3(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 var findNodeUnderCursor = function findNodeUnderCursor(nodes, margin, x, y) {
   return nodes.find(function (node) {
     return core.isCursorInRect(node.x + margin.left, node.y + margin.top, node.width, node.height, x, y);
   });
 };
-
 var BarCanvas =
-/*#__PURE__*/
 function (_Component) {
   _inherits(BarCanvas, _Component);
-
   function BarCanvas() {
     var _getPrototypeOf2;
-
     var _this;
-
     _classCallCheck(this, BarCanvas);
-
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
-
     _this = _possibleConstructorReturn(this, (_getPrototypeOf2 = _getPrototypeOf(BarCanvas)).call.apply(_getPrototypeOf2, [this].concat(args)));
-
     _defineProperty$3(_assertThisInitialized(_this), "handleMouseHover", function (showTooltip, hideTooltip) {
       return function (event) {
         if (!_this.bars) return;
         var _this$props = _this.props,
             margin = _this$props.margin,
             theme = _this$props.theme,
-            tooltip = _this$props.tooltip,
+            tooltip$1 = _this$props.tooltip,
             getTooltipLabel = _this$props.getTooltipLabel,
             tooltipFormat = _this$props.tooltipFormat;
-
         var _getRelativeCursor = core.getRelativeCursor(_this.surface, event),
             _getRelativeCursor2 = _slicedToArray(_getRelativeCursor, 2),
             x = _getRelativeCursor2[0],
             y = _getRelativeCursor2[1];
-
         var bar = findNodeUnderCursor(_this.bars, margin, x, y);
-
         if (bar !== undefined) {
-          showTooltip(React__default.createElement(core.BasicTooltip, {
+          showTooltip(React__default.createElement(tooltip.BasicTooltip, {
             id: getTooltipLabel(bar.data),
             value: bar.data.value,
             enableChip: true,
             color: bar.color,
             theme: theme,
             format: tooltipFormat,
-            renderContent: typeof tooltip === 'function' ? tooltip.bind(null, _objectSpread$3({
+            renderContent: typeof tooltip$1 === 'function' ? tooltip$1.bind(null, _objectSpread$3({
               color: bar.color
             }, bar.data)) : null
           }), event);
@@ -1240,31 +1075,25 @@ function (_Component) {
         }
       };
     });
-
     _defineProperty$3(_assertThisInitialized(_this), "handleMouseLeave", function (hideTooltip) {
       return function () {
         hideTooltip();
       };
     });
-
     _defineProperty$3(_assertThisInitialized(_this), "handleClick", function (event) {
       if (!_this.bars) return;
       var _this$props2 = _this.props,
           margin = _this$props2.margin,
           onClick = _this$props2.onClick;
-
       var _getRelativeCursor3 = core.getRelativeCursor(_this.surface, event),
           _getRelativeCursor4 = _slicedToArray(_getRelativeCursor3, 2),
           x = _getRelativeCursor4[0],
           y = _getRelativeCursor4[1];
-
       var node = findNodeUnderCursor(_this.bars, margin, x, y);
       if (node !== undefined) onClick(node.data, event);
     });
-
     return _this;
   }
-
   _createClass(BarCanvas, [{
     key: "componentDidMount",
     value: function componentDidMount() {
@@ -1291,7 +1120,6 @@ function (_Component) {
     key: "draw",
     value: function draw(props) {
       var _this2 = this;
-
       var data = props.data,
           keys = props.keys,
           getIndex = props.getIndex,
@@ -1318,7 +1146,9 @@ function (_Component) {
           getBorderColor = props.getBorderColor,
           legends$1 = props.legends,
           enableGridX = props.enableGridX,
-          enableGridY = props.enableGridY;
+          gridXValues = props.gridXValues,
+          enableGridY = props.enableGridY,
+          gridYValues = props.gridYValues;
       this.surface.width = outerWidth * pixelRatio;
       this.surface.height = outerHeight * pixelRatio;
       this.ctx.scale(pixelRatio, pixelRatio);
@@ -1341,19 +1171,24 @@ function (_Component) {
       this.ctx.fillStyle = theme.background;
       this.ctx.fillRect(0, 0, outerWidth, outerHeight);
       this.ctx.translate(margin.left, margin.top);
-      this.ctx.strokeStyle = '#dddddd';
-      enableGridX && core.renderGridLinesToCanvas(this.ctx, {
-        width: width,
-        height: height,
-        scale: result.xScale,
-        axis: 'x'
-      });
-      enableGridY && core.renderGridLinesToCanvas(this.ctx, {
-        width: width,
-        height: height,
-        scale: result.yScale,
-        axis: 'y'
-      });
+      if (theme.grid.line.strokeWidth > 0) {
+        this.ctx.lineWidth = theme.grid.line.strokeWidth;
+        this.ctx.strokeStyle = theme.grid.line.stroke;
+        enableGridX && axes.renderGridLinesToCanvas(this.ctx, {
+          width: width,
+          height: height,
+          scale: result.xScale,
+          axis: 'x',
+          values: gridXValues
+        });
+        enableGridY && axes.renderGridLinesToCanvas(this.ctx, {
+          width: width,
+          height: height,
+          scale: result.yScale,
+          axis: 'y',
+          values: gridYValues
+        });
+      }
       this.ctx.strokeStyle = '#dddddd';
       var legendDataForKeys = _uniqBy(result.bars.map(function (bar) {
         return {
@@ -1379,13 +1214,11 @@ function (_Component) {
       });
       legends$1.forEach(function (legend) {
         var legendData;
-
         if (legend.dataFrom === 'keys') {
           legendData = legendDataForKeys;
         } else if (legend.dataFrom === 'indexes') {
           legendData = legendDataForIndexes;
         }
-
         if (legendData === undefined) return null;
         legends.renderLegendToCanvas(_this2.ctx, _objectSpread$3({}, legend, {
           data: legendData,
@@ -1413,18 +1246,13 @@ function (_Component) {
             width = bar.width,
             height = bar.height;
         _this2.ctx.fillStyle = color;
-
         if (borderWidth > 0) {
           _this2.ctx.strokeStyle = getBorderColor(bar);
           _this2.ctx.lineWidth = borderWidth;
         }
-
         _this2.ctx.beginPath();
-
         _this2.ctx.rect(x, y, width, height);
-
         _this2.ctx.fill();
-
         if (borderWidth > 0) {
           _this2.ctx.stroke();
         }
@@ -1434,7 +1262,6 @@ function (_Component) {
     key: "render",
     value: function render() {
       var _this3 = this;
-
       var _this$props3 = this.props,
           outerWidth = _this$props3.outerWidth,
           outerHeight = _this$props3.outerHeight,
@@ -1443,7 +1270,8 @@ function (_Component) {
           theme = _this$props3.theme;
       return React__default.createElement(core.Container, {
         isInteractive: isInteractive,
-        theme: theme
+        theme: theme,
+        animate: false
       }, function (_ref3) {
         var showTooltip = _ref3.showTooltip,
             hideTooltip = _ref3.hideTooltip;
@@ -1465,33 +1293,29 @@ function (_Component) {
       });
     }
   }]);
-
   return BarCanvas;
 }(React.Component);
-
 BarCanvas.propTypes = BarPropTypes;
 var BarCanvas$1 = setDisplayName('BarCanvas')(enhance$1(BarCanvas));
 
-function _extends$1() { _extends$1 = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$1.apply(this, arguments); }
-
+function _extends$2() { _extends$2 = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$2.apply(this, arguments); }
 var ResponsiveBar = function ResponsiveBar(props) {
   return React__default.createElement(core.ResponsiveWrapper, null, function (_ref) {
     var width = _ref.width,
         height = _ref.height;
-    return React__default.createElement(Bar$1, _extends$1({
+    return React__default.createElement(Bar$1, _extends$2({
       width: width,
       height: height
     }, props));
   });
 };
 
-function _extends$2() { _extends$2 = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$2.apply(this, arguments); }
-
+function _extends$3() { _extends$3 = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$3.apply(this, arguments); }
 var ResponsiveBarCanvas = function ResponsiveBarCanvas(props) {
   return React__default.createElement(core.ResponsiveWrapper, null, function (_ref) {
     var width = _ref.width,
         height = _ref.height;
-    return React__default.createElement(BarCanvas$1, _extends$2({
+    return React__default.createElement(BarCanvas$1, _extends$3({
       width: width,
       height: height
     }, props));

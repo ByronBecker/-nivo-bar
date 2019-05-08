@@ -1,3 +1,11 @@
+/*
+ * This file is part of the nivo project.
+ *
+ * Copyright 2016-present, Raphaël Benitte.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 import * as React from 'react'
 import {
     Dimensions,
@@ -5,10 +13,10 @@ import {
     Theme,
     MotionProps,
     ColorProps,
-    GetColor,
     SvgDefsAndFill,
     CartesianMarkerProps,
 } from '@nivo/core'
+import { OrdinalColorsInstruction, InheritedColorProp } from '@nivo/colors'
 import { LegendProps } from '@nivo/legends'
 
 declare module '@nivo/bar' {
@@ -101,11 +109,12 @@ declare module '@nivo/bar' {
             enableLabel: boolean
             label: string | AccessorFunc
             labelFormat: string | LabelFormatter
-            labelLinkColor: string | GetColor<BarDatumWithColor>
+            labelLinkColor: InheritedColorProp<BarDatumWithColor>
             labelSkipWidth: number
             labelSkipHeight: number
-            labelTextColor: string | GetColor<BarDatumWithColor>
+            labelTextColor: InheritedColorProp<BarDatumWithColor>
 
+            colors: OrdinalColorsInstruction
             borderRadius: number
             borderWidth: number
             theme: Theme

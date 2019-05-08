@@ -8,13 +8,14 @@
  */
 import React, { Fragment } from 'react'
 import { TransitionMotion, spring } from 'react-motion'
-import { bindDefs, Container, SvgWrapper, Grid, CartesianMarkers } from '@nivo/core'
-import { Axes } from '@nivo/axes'
+import { bindDefs, Container, SvgWrapper, CartesianMarkers } from '@nivo/core'
+import { Axes, Grid } from '@nivo/axes'
 import { BoxLegendSvg } from '@nivo/legends'
 import { generateGroupedBars, generateStackedBars, getLegendData } from './compute'
 import setDisplayName from 'recompose/setDisplayName'
 import enhance from './enhance'
 import { BarPropTypes } from './props'
+import BarAnnotations from './BarAnnotations'
 
 const barWillEnterHorizontal = ({ style }) => ({
     x: style.x.val,
@@ -92,9 +93,7 @@ const Bar = props => {
         borderWidth,
         getBorderColor,
 
-        animate,
-        motionStiffness,
-        motionDamping,
+        annotations,
 
         isInteractive,
         getTooltipLabel,
@@ -107,6 +106,10 @@ const Bar = props => {
         minBarLength,
 
         legends,
+
+        animate,
+        motionStiffness,
+        motionDamping,
     } = props
     const options = {
         layout,
@@ -121,7 +124,7 @@ const Bar = props => {
         getColor,
         padding,
         innerPadding,
-        minBarLength
+        minBarLength,
     }
     const result =
         groupMode === 'grouped' ? generateGroupedBars(options) : generateStackedBars(options)
@@ -156,7 +159,13 @@ const Bar = props => {
     })
 
     return (
-        <Container isInteractive={isInteractive} theme={theme}>
+        <Container
+            isInteractive={isInteractive}
+            theme={theme}
+            animate={animate}
+            motionStiffness={motionStiffness}
+            motionDamping={motionDamping}
+        >
             {({ showTooltip, hideTooltip }) => {
                 const commonProps = {
                     borderRadius,
@@ -234,14 +243,12 @@ const Bar = props => {
                     grid: (
                         <Grid
                             key="grid"
-                            theme={theme}
                             width={width}
                             height={height}
                             xScale={enableGridX ? result.xScale : null}
                             yScale={enableGridY ? result.yScale : null}
                             xValues={gridXValues}
                             yValues={gridYValues}
-                            {...motionProps}
                         />
                     ),
                     axes: (
@@ -251,12 +258,10 @@ const Bar = props => {
                             yScale={result.yScale}
                             width={width}
                             height={height}
-                            theme={theme}
                             top={axisTop}
                             right={axisRight}
                             bottom={axisBottom}
                             left={axisLeft}
-                            {...motionProps}
                         />
                     ),
                     bars,
@@ -293,6 +298,16 @@ const Bar = props => {
                             />
                         )
                     }),
+                    annotations: (
+                        <BarAnnotations
+                            key="annotations"
+                            innerWidth={width}
+                            innerHeight={height}
+                            bars={result.bars}
+                            annotations={annotations}
+                            {...motionProps}
+                        />
+                    ),
                 }
 
                 return (

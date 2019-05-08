@@ -11,7 +11,7 @@ import PropTypes from 'prop-types'
 import compose from 'recompose/compose'
 import withPropsOnChange from 'recompose/withPropsOnChange'
 import pure from 'recompose/pure'
-import { BasicTooltip } from '@nivo/core'
+import { BasicTooltip } from '@nivo/tooltip'
 
 const BarItem = ({
     data,
@@ -68,7 +68,7 @@ const BarItem = ({
                     x={width / 2}
                     y={height / 2}
                     textAnchor="middle"
-                    alignmentBaseline="central"
+                    dominantBaseline="central"
                     style={{
                         ...theme.labels.text,
                         pointerEvents: 'none',

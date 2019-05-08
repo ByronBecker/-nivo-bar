@@ -56,8 +56,8 @@ stories.add('with marker', () => (
     />
 ))
 
-stories.add('using custom colorBy', () => (
-    <Bar {...commonProps} colorBy={({ id, data }) => data[`${id}Color`]} />
+stories.add('using custom color', () => (
+    <Bar {...commonProps} colors={({ id, data }) => data[`${id}Color`]} />
 ))
 
 const divergingData = range(9).map(i => {
@@ -231,7 +231,7 @@ stories.add(
                         <line stroke="rgb(232, 193, 160)" strokeWidth={1.5} y1={-22} y2={-12} />
                         <text
                             textAnchor="middle"
-                            alignmentBaseline="middle"
+                            dominantBaseline="middle"
                             style={{
                                 ...tick.theme.axis.ticks.text,
                                 fill: '#333',
