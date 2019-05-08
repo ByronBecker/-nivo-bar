@@ -9,10 +9,9 @@
 import React, { Component } from 'react'
 import uniqBy from 'lodash/uniqBy'
 import setDisplayName from 'recompose/setDisplayName'
-import { getRelativeCursor, isCursorInRect, Container } from '@nivo/core'
+import { getRelativeCursor, isCursorInRect, Container, BasicTooltip } from '@nivo/core'
 import { renderAxesToCanvas, renderGridLinesToCanvas } from '@nivo/axes'
 import { renderLegendToCanvas } from '@nivo/legends'
-import { BasicTooltip } from '@nivo/tooltip'
 import { generateGroupedBars, generateStackedBars } from './compute'
 import { BarPropTypes } from './props'
 import enhance from './enhance'
@@ -259,7 +258,7 @@ class BarCanvas extends Component {
         const { outerWidth, outerHeight, pixelRatio, isInteractive, theme } = this.props
 
         return (
-            <Container isInteractive={isInteractive} theme={theme} animate={false}>
+            <Container isInteractive={isInteractive} theme={theme}>
                 {({ showTooltip, hideTooltip }) => (
                     <canvas
                         ref={surface => {

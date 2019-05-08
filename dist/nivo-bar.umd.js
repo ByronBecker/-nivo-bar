@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('react'), require('react-motion'), require('@nivo/core'), require('@nivo/axes'), require('@nivo/legends'), require('lodash/min'), require('lodash/max'), require('lodash/range'), require('d3-scale'), require('lodash/flattenDepth'), require('d3-shape'), require('lodash/uniqBy'), require('recompose/setDisplayName'), require('recompose/compose'), require('recompose/defaultProps'), require('recompose/withPropsOnChange'), require('recompose/pure'), require('@nivo/colors'), require('prop-types'), require('@nivo/tooltip'), require('@nivo/annotations')) :
-    typeof define === 'function' && define.amd ? define(['exports', 'react', 'react-motion', '@nivo/core', '@nivo/axes', '@nivo/legends', 'lodash/min', 'lodash/max', 'lodash/range', 'd3-scale', 'lodash/flattenDepth', 'd3-shape', 'lodash/uniqBy', 'recompose/setDisplayName', 'recompose/compose', 'recompose/defaultProps', 'recompose/withPropsOnChange', 'recompose/pure', '@nivo/colors', 'prop-types', '@nivo/tooltip', '@nivo/annotations'], factory) :
-    (global = global || self, factory(global.nivo = global.nivo || {}, global.React, global.ReactMotion, global.nivo, global.nivo, global.nivo, global['lodash/min'], global['lodash/max'], global['lodash/range'], global.d3, global['lodash/flattenDepth'], global.d3, global['lodash/uniqBy'], global.RecomposeSetDisplayName, global.RecomposeCompose, global.RecomposeDefaultProps, global.RecomposeWithPropsOnChange, global.RecomposePure, global.nivo, global.PropTypes, global.nivo, global.nivo));
-}(this, function (exports, React, reactMotion, core, axes, legends, min, max, range, d3Scale, flattenDepth, d3Shape, _uniqBy, setDisplayName, compose, defaultProps, withPropsOnChange, pure, colors, PropTypes, tooltip, annotations) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('react'), require('react-motion'), require('@nivo/core'), require('@nivo/axes'), require('@nivo/legends'), require('lodash/min'), require('lodash/max'), require('lodash/range'), require('d3-scale'), require('lodash/flattenDepth'), require('d3-shape'), require('lodash/uniqBy'), require('recompose/setDisplayName'), require('recompose/compose'), require('recompose/defaultProps'), require('recompose/withPropsOnChange'), require('recompose/pure'), require('@nivo/colors'), require('prop-types'), require('@nivo/annotations')) :
+    typeof define === 'function' && define.amd ? define(['exports', 'react', 'react-motion', '@nivo/core', '@nivo/axes', '@nivo/legends', 'lodash/min', 'lodash/max', 'lodash/range', 'd3-scale', 'lodash/flattenDepth', 'd3-shape', 'lodash/uniqBy', 'recompose/setDisplayName', 'recompose/compose', 'recompose/defaultProps', 'recompose/withPropsOnChange', 'recompose/pure', '@nivo/colors', 'prop-types', '@nivo/annotations'], factory) :
+    (global = global || self, factory(global.nivo = global.nivo || {}, global.React, global.ReactMotion, global.nivo, global.nivo, global.nivo, global['lodash/min'], global['lodash/max'], global['lodash/range'], global.d3, global['lodash/flattenDepth'], global.d3, global['lodash/uniqBy'], global.RecomposeSetDisplayName, global.RecomposeCompose, global.RecomposeDefaultProps, global.RecomposeWithPropsOnChange, global.RecomposePure, global.nivo, global.PropTypes, global.nivo));
+}(this, function (exports, React, reactMotion, core, axes, legends, min, max, range, d3Scale, flattenDepth, d3Shape, _uniqBy, setDisplayName, compose, defaultProps, withPropsOnChange, pure, colors, PropTypes, annotations) { 'use strict';
 
     var React__default = 'default' in React ? React['default'] : React;
     min = min && min.hasOwnProperty('default') ? min['default'] : min;
@@ -460,7 +460,7 @@
         x: width / 2,
         y: height / 2,
         textAnchor: "middle",
-        dominantBaseline: "central",
+        alignmentBaseline: "central",
         style: _objectSpread({}, theme.labels.text, {
           pointerEvents: 'none',
           fill: labelColor
@@ -511,18 +511,18 @@
       var data = _ref3.data,
           color = _ref3.color,
           theme = _ref3.theme,
-          tooltip$1 = _ref3.tooltip,
+          tooltip = _ref3.tooltip,
           getTooltipLabel = _ref3.getTooltipLabel,
           tooltipFormat = _ref3.tooltipFormat;
       return {
-        tooltip: React__default.createElement(tooltip.BasicTooltip, {
+        tooltip: React__default.createElement(core.BasicTooltip, {
           id: getTooltipLabel(data),
           value: data.value,
           enableChip: true,
           color: color,
           theme: theme,
           format: tooltipFormat,
-          renderContent: typeof tooltip$1 === 'function' ? tooltip$1.bind(null, _objectSpread({
+          renderContent: typeof tooltip === 'function' ? tooltip.bind(null, _objectSpread({
             color: color,
             theme: theme
           }, data)) : null
@@ -801,6 +801,9 @@
           borderWidth = props.borderWidth,
           getBorderColor = props.getBorderColor,
           annotations = props.annotations,
+          animate = props.animate,
+          motionStiffness = props.motionStiffness,
+          motionDamping = props.motionDamping,
           isInteractive = props.isInteractive,
           getTooltipLabel = props.getTooltipLabel,
           tooltipFormat = props.tooltipFormat,
@@ -809,10 +812,7 @@
           onMouseEnter = props.onMouseEnter,
           onMouseLeave = props.onMouseLeave,
           minBarLength = props.minBarLength,
-          legends$1 = props.legends,
-          animate = props.animate,
-          motionStiffness = props.motionStiffness,
-          motionDamping = props.motionDamping;
+          legends$1 = props.legends;
       var options = {
         layout: layout,
         reverse: reverse,
@@ -854,10 +854,7 @@
       });
       return React__default.createElement(core.Container, {
         isInteractive: isInteractive,
-        theme: theme,
-        animate: animate,
-        motionStiffness: motionStiffness,
-        motionDamping: motionDamping
+        theme: theme
       }, function (_ref6) {
         var showTooltip = _ref6.showTooltip,
             hideTooltip = _ref6.hideTooltip;
@@ -928,26 +925,28 @@
           });
         }
         var layerById = {
-          grid: React__default.createElement(axes.Grid, {
+          grid: React__default.createElement(axes.Grid, _extends$1({
             key: "grid",
+            theme: theme,
             width: width,
             height: height,
             xScale: enableGridX ? result.xScale : null,
             yScale: enableGridY ? result.yScale : null,
             xValues: gridXValues,
             yValues: gridYValues
-          }),
-          axes: React__default.createElement(axes.Axes, {
+          }, motionProps)),
+          axes: React__default.createElement(axes.Axes, _extends$1({
             key: "axes",
             xScale: result.xScale,
             yScale: result.yScale,
             width: width,
             height: height,
+            theme: theme,
             top: axisTop,
             right: axisRight,
             bottom: axisBottom,
             left: axisLeft
-          }),
+          }, motionProps)),
           bars: bars,
           markers: React__default.createElement(core.CartesianMarkers, {
             key: "markers",
@@ -1040,7 +1039,7 @@
             var _this$props = _this.props,
                 margin = _this$props.margin,
                 theme = _this$props.theme,
-                tooltip$1 = _this$props.tooltip,
+                tooltip = _this$props.tooltip,
                 getTooltipLabel = _this$props.getTooltipLabel,
                 tooltipFormat = _this$props.tooltipFormat;
             var _getRelativeCursor = core.getRelativeCursor(_this.surface, event),
@@ -1049,14 +1048,14 @@
                 y = _getRelativeCursor2[1];
             var bar = findNodeUnderCursor(_this.bars, margin, x, y);
             if (bar !== undefined) {
-              showTooltip(React__default.createElement(tooltip.BasicTooltip, {
+              showTooltip(React__default.createElement(core.BasicTooltip, {
                 id: getTooltipLabel(bar.data),
                 value: bar.data.value,
                 enableChip: true,
                 color: bar.color,
                 theme: theme,
                 format: tooltipFormat,
-                renderContent: typeof tooltip$1 === 'function' ? tooltip$1.bind(null, _objectSpread$3({
+                renderContent: typeof tooltip === 'function' ? tooltip.bind(null, _objectSpread$3({
                   color: bar.color
                 }, bar.data)) : null
               }), event);
@@ -1260,8 +1259,7 @@
               theme = _this$props3.theme;
           return React__default.createElement(core.Container, {
             isInteractive: isInteractive,
-            theme: theme,
-            animate: false
+            theme: theme
           }, function (_ref3) {
             var showTooltip = _ref3.showTooltip,
                 hideTooltip = _ref3.hideTooltip;

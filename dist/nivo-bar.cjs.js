@@ -24,7 +24,6 @@ var withPropsOnChange = _interopDefault(require('recompose/withPropsOnChange'));
 var pure = _interopDefault(require('recompose/pure'));
 var colors = require('@nivo/colors');
 var PropTypes = _interopDefault(require('prop-types'));
-var tooltip = require('@nivo/tooltip');
 var annotations = require('@nivo/annotations');
 
 var getIndexedScale = function getIndexedScale(data, getIndex, range, padding) {
@@ -470,7 +469,7 @@ var BarItem = function BarItem(_ref) {
     x: width / 2,
     y: height / 2,
     textAnchor: "middle",
-    dominantBaseline: "central",
+    alignmentBaseline: "central",
     style: _objectSpread({}, theme.labels.text, {
       pointerEvents: 'none',
       fill: labelColor
@@ -521,18 +520,18 @@ var enhance = compose(withPropsOnChange(['data', 'color', 'onClick'], function (
   var data = _ref3.data,
       color = _ref3.color,
       theme = _ref3.theme,
-      tooltip$1 = _ref3.tooltip,
+      tooltip = _ref3.tooltip,
       getTooltipLabel = _ref3.getTooltipLabel,
       tooltipFormat = _ref3.tooltipFormat;
   return {
-    tooltip: React__default.createElement(tooltip.BasicTooltip, {
+    tooltip: React__default.createElement(core.BasicTooltip, {
       id: getTooltipLabel(data),
       value: data.value,
       enableChip: true,
       color: color,
       theme: theme,
       format: tooltipFormat,
-      renderContent: typeof tooltip$1 === 'function' ? tooltip$1.bind(null, _objectSpread({
+      renderContent: typeof tooltip === 'function' ? tooltip.bind(null, _objectSpread({
         color: color,
         theme: theme
       }, data)) : null
@@ -811,6 +810,9 @@ var Bar = function Bar(props) {
       borderWidth = props.borderWidth,
       getBorderColor = props.getBorderColor,
       annotations = props.annotations,
+      animate = props.animate,
+      motionStiffness = props.motionStiffness,
+      motionDamping = props.motionDamping,
       isInteractive = props.isInteractive,
       getTooltipLabel = props.getTooltipLabel,
       tooltipFormat = props.tooltipFormat,
@@ -819,10 +821,7 @@ var Bar = function Bar(props) {
       onMouseEnter = props.onMouseEnter,
       onMouseLeave = props.onMouseLeave,
       minBarLength = props.minBarLength,
-      legends$1 = props.legends,
-      animate = props.animate,
-      motionStiffness = props.motionStiffness,
-      motionDamping = props.motionDamping;
+      legends$1 = props.legends;
   var options = {
     layout: layout,
     reverse: reverse,
@@ -864,10 +863,7 @@ var Bar = function Bar(props) {
   });
   return React__default.createElement(core.Container, {
     isInteractive: isInteractive,
-    theme: theme,
-    animate: animate,
-    motionStiffness: motionStiffness,
-    motionDamping: motionDamping
+    theme: theme
   }, function (_ref6) {
     var showTooltip = _ref6.showTooltip,
         hideTooltip = _ref6.hideTooltip;
@@ -938,26 +934,28 @@ var Bar = function Bar(props) {
       });
     }
     var layerById = {
-      grid: React__default.createElement(axes.Grid, {
+      grid: React__default.createElement(axes.Grid, _extends$1({
         key: "grid",
+        theme: theme,
         width: width,
         height: height,
         xScale: enableGridX ? result.xScale : null,
         yScale: enableGridY ? result.yScale : null,
         xValues: gridXValues,
         yValues: gridYValues
-      }),
-      axes: React__default.createElement(axes.Axes, {
+      }, motionProps)),
+      axes: React__default.createElement(axes.Axes, _extends$1({
         key: "axes",
         xScale: result.xScale,
         yScale: result.yScale,
         width: width,
         height: height,
+        theme: theme,
         top: axisTop,
         right: axisRight,
         bottom: axisBottom,
         left: axisLeft
-      }),
+      }, motionProps)),
       bars: bars,
       markers: React__default.createElement(core.CartesianMarkers, {
         key: "markers",
@@ -1050,7 +1048,7 @@ function (_Component) {
         var _this$props = _this.props,
             margin = _this$props.margin,
             theme = _this$props.theme,
-            tooltip$1 = _this$props.tooltip,
+            tooltip = _this$props.tooltip,
             getTooltipLabel = _this$props.getTooltipLabel,
             tooltipFormat = _this$props.tooltipFormat;
         var _getRelativeCursor = core.getRelativeCursor(_this.surface, event),
@@ -1059,14 +1057,14 @@ function (_Component) {
             y = _getRelativeCursor2[1];
         var bar = findNodeUnderCursor(_this.bars, margin, x, y);
         if (bar !== undefined) {
-          showTooltip(React__default.createElement(tooltip.BasicTooltip, {
+          showTooltip(React__default.createElement(core.BasicTooltip, {
             id: getTooltipLabel(bar.data),
             value: bar.data.value,
             enableChip: true,
             color: bar.color,
             theme: theme,
             format: tooltipFormat,
-            renderContent: typeof tooltip$1 === 'function' ? tooltip$1.bind(null, _objectSpread$3({
+            renderContent: typeof tooltip === 'function' ? tooltip.bind(null, _objectSpread$3({
               color: bar.color
             }, bar.data)) : null
           }), event);
@@ -1270,8 +1268,7 @@ function (_Component) {
           theme = _this$props3.theme;
       return React__default.createElement(core.Container, {
         isInteractive: isInteractive,
-        theme: theme,
-        animate: false
+        theme: theme
       }, function (_ref3) {
         var showTooltip = _ref3.showTooltip,
             hideTooltip = _ref3.hideTooltip;

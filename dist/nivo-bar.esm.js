@@ -1,6 +1,6 @@
 import React, { Fragment, Component } from 'react';
 import { TransitionMotion, spring } from 'react-motion';
-import { defsPropTypes, noop, withTheme, withDimensions, withMotion, getAccessorFor, getLabelGenerator, bindDefs, Container, CartesianMarkers, SvgWrapper, getRelativeCursor, isCursorInRect, ResponsiveWrapper } from '@nivo/core';
+import { BasicTooltip, defsPropTypes, noop, withTheme, withDimensions, withMotion, getAccessorFor, getLabelGenerator, bindDefs, Container, CartesianMarkers, SvgWrapper, getRelativeCursor, isCursorInRect, ResponsiveWrapper } from '@nivo/core';
 import { axisPropType, Grid, Axes, renderGridLinesToCanvas, renderAxesToCanvas } from '@nivo/axes';
 import { LegendPropShape, BoxLegendSvg, renderLegendToCanvas } from '@nivo/legends';
 import min from 'lodash/min';
@@ -17,7 +17,6 @@ import withPropsOnChange from 'recompose/withPropsOnChange';
 import pure from 'recompose/pure';
 import { inheritedColorPropType, ordinalColorsPropType, colorPropertyAccessorPropType, getOrdinalColorScale, getInheritedColorGenerator } from '@nivo/colors';
 import PropTypes from 'prop-types';
-import { BasicTooltip } from '@nivo/tooltip';
 import { useAnnotations, Annotation } from '@nivo/annotations';
 
 var getIndexedScale = function getIndexedScale(data, getIndex, range, padding) {
@@ -463,7 +462,7 @@ var BarItem = function BarItem(_ref) {
     x: width / 2,
     y: height / 2,
     textAnchor: "middle",
-    dominantBaseline: "central",
+    alignmentBaseline: "central",
     style: _objectSpread({}, theme.labels.text, {
       pointerEvents: 'none',
       fill: labelColor
@@ -804,6 +803,9 @@ var Bar = function Bar(props) {
       borderWidth = props.borderWidth,
       getBorderColor = props.getBorderColor,
       annotations = props.annotations,
+      animate = props.animate,
+      motionStiffness = props.motionStiffness,
+      motionDamping = props.motionDamping,
       isInteractive = props.isInteractive,
       getTooltipLabel = props.getTooltipLabel,
       tooltipFormat = props.tooltipFormat,
@@ -812,10 +814,7 @@ var Bar = function Bar(props) {
       onMouseEnter = props.onMouseEnter,
       onMouseLeave = props.onMouseLeave,
       minBarLength = props.minBarLength,
-      legends = props.legends,
-      animate = props.animate,
-      motionStiffness = props.motionStiffness,
-      motionDamping = props.motionDamping;
+      legends = props.legends;
   var options = {
     layout: layout,
     reverse: reverse,
@@ -857,10 +856,7 @@ var Bar = function Bar(props) {
   });
   return React.createElement(Container, {
     isInteractive: isInteractive,
-    theme: theme,
-    animate: animate,
-    motionStiffness: motionStiffness,
-    motionDamping: motionDamping
+    theme: theme
   }, function (_ref6) {
     var showTooltip = _ref6.showTooltip,
         hideTooltip = _ref6.hideTooltip;
@@ -931,26 +927,28 @@ var Bar = function Bar(props) {
       });
     }
     var layerById = {
-      grid: React.createElement(Grid, {
+      grid: React.createElement(Grid, _extends$1({
         key: "grid",
+        theme: theme,
         width: width,
         height: height,
         xScale: enableGridX ? result.xScale : null,
         yScale: enableGridY ? result.yScale : null,
         xValues: gridXValues,
         yValues: gridYValues
-      }),
-      axes: React.createElement(Axes, {
+      }, motionProps)),
+      axes: React.createElement(Axes, _extends$1({
         key: "axes",
         xScale: result.xScale,
         yScale: result.yScale,
         width: width,
         height: height,
+        theme: theme,
         top: axisTop,
         right: axisRight,
         bottom: axisBottom,
         left: axisLeft
-      }),
+      }, motionProps)),
       bars: bars,
       markers: React.createElement(CartesianMarkers, {
         key: "markers",
@@ -1263,8 +1261,7 @@ function (_Component) {
           theme = _this$props3.theme;
       return React.createElement(Container, {
         isInteractive: isInteractive,
-        theme: theme,
-        animate: false
+        theme: theme
       }, function (_ref3) {
         var showTooltip = _ref3.showTooltip,
             hideTooltip = _ref3.hideTooltip;
